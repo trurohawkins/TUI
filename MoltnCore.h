@@ -1,0 +1,253 @@
+#pragma once
+#ifndef HELP
+#define HELP
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <time.h>
+#include<stdbool.h>
+#include<string.h>
+#include <math.h>
+#include <limits.h>
+//#include "file.h"
+
+void initDirections();
+void freeDirections();
+int **getDirs();
+int **getDirs8();
+float getAngle(int dir);
+int *getDir8(int dir);
+int *getDir4(int dir);
+int d8Tod4(int);
+int xyToDir4(int *xy);
+int xyToDir8(int x, int y);
+int convertInvert(bool inv);
+float randPercent();
+int randomInt(int upper);
+int randRange(int mmin, int max);
+int coinFlip(int a, int b);
+int clamp(int, int, int);
+double clampF(double, double, double);
+float max(float a, float b);
+float min(float a, float b);
+int sign(int);
+int signF(float num);
+bool equal(float a, float b);
+float lerp(float a, float b, float t);
+float slerp(float a, float b, float t);
+//int abs(int);
+float distance(float x1, float y1, float x2, float y2);
+char *fileToString(char *txt);
+bool strCompare(char *str1, char *str2);
+void printArray(int**, int, int);
+bool compareColor(void *c1, void *c2);
+int decPlace(int d);
+float intToFrac(int i, int pow);
+
+void testFunc();
+#endif
+#ifndef LL
+#define LL
+typedef struct linkedList
+{
+	void *data;
+	struct linkedList *next;
+	struct LinkedList *prev;
+} linkedList;
+
+#include <stdio.h>
+#include <stdlib.h>
+
+linkedList *makeList();
+
+void addToList(linkedList **head, void *item);
+bool addToListSingle(linkedList **head, void *item);
+void printList(linkedList **head, char *listName, void (*print)(void*));
+void listPrint(linkedList *head);
+void *findList(linkedList **head, void *item, bool (*cmp)(void*, void*));
+bool cmpList(linkedList **head, void *item, bool (*cmp)(void*, void*));
+void *checkList(linkedList **head, bool (*chk)(void*));
+bool isInList(linkedList **head, void *item);
+bool isInListInt(linkedList **head, int item);
+void *indexList(linkedList **head, int index);
+void *removeFromList(linkedList **head, void *item);
+bool checkAndDelete(linkedList **head, bool (*chk)(void*), void (*del)(void*));
+void *removeFromListCheck(linkedList **head, bool (*chk)(void*));
+void *removeFromListInt(linkedList **head, int item);
+void checkAndRemove(linkedList **head, bool (*chk)(void*));
+void **getContents(linkedList **head, int num);
+int countContents(linkedList *head);
+void freeList(linkedList **ll);
+void deleteList(linkedList **ll, void (*deleteFunc)(void*));
+void freeListSaveObj(linkedList **ll);
+void *popList(linkedList **head);
+#endif
+#ifndef IL
+#define IL
+
+typedef struct intList
+{
+	int data;
+	struct intList *next;
+} intList;
+
+intList *makeIntList(int data);
+void addToIntList(intList **head, int item);
+bool addToIntListSingle(intList **head, int item);
+int removeFromIntList(intList **head, int item);
+void checkAndRemoveInt(intList **head, bool (*chk)(int));
+int countList(intList *head);
+void freeIntList(intList **head);
+#endif
+#ifndef SORTEDLIST
+#define SORTEDLIST
+
+typedef struct SortedList {
+	void *data;
+	int val;
+	struct SortedList *pre;
+	struct SortedList *next;
+} SortedList;
+
+SortedList *makeSlist(void *data, int val);
+void sortedAdd(SortedList **head, void *item, int val);
+void *searchSlist(SortedList *cur, int val);
+bool isInSlist(SortedList *cur, void *data);
+void freeSlist(SortedList *head);
+void printSlist(SortedList *head);
+#endif
+#ifndef BINARYWRITER
+#define BINARYWRITER
+
+#include <stdio.h>
+#include <stdlib.h>
+bool writeBinaryInt(char *file, int *val, int num);
+int fput32le(int x, char *file);
+int *readBinaryInt(FILE *fptr, int num);
+
+#endif
+#ifndef ATOMIC_QUEUE
+#define ATOMIC_QUEUE
+
+#include <stdatomic.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <string.h>
+
+typedef enum {
+	AQ_PUSH_FAILED,
+	AQ_PUSH_SUCCESS,
+	AQ_PUSH_SUCCESS_EMPTY,
+} AqPushResult;
+
+//CAPACITY needs to be a power of 2
+
+#define DECLARE_SPSC_QUEUE(TYPE, NAME, CAPACITY)\
+	typedef struct {\
+		TYPE buffer[CAPACITY];\
+		atomic_uint writeIndex;\
+		atomic_uint readIndex;\
+	} NAME;\
+
+#define DEFINE_SPSC_PUSH(TYPE, NAME, CAPACITY)\
+	static inline AqPushResult NAME##_aqPush(NAME *q, TYPE value) {\
+		unsigned w = atomic_load_explicit(&q->writeIndex, memory_order_relaxed);\
+		unsigned r = atomic_load_explicit(&q->readIndex, memory_order_acquire);\
+		bool wasEmpty = (w == r);\
+		unsigned next = (w + 1) & (CAPACITY - 1);\
+		if (next == r) {\
+			return AQ_PUSH_FAILED; /*full*/\
+		}\
+		q->buffer[w] = value;\
+		atomic_store_explicit(&q->writeIndex, next, memory_order_release);\
+		return wasEmpty ? AQ_PUSH_SUCCESS_EMPTY : AQ_PUSH_SUCCESS;\
+	}\
+
+#define DEFINE_SPSC_POP(TYPE, NAME, CAPACITY)\
+	static inline bool NAME##_aqPop(NAME *q, TYPE *out) {\
+		unsigned r = atomic_load_explicit(&q->readIndex, memory_order_relaxed);\
+		unsigned w = atomic_load_explicit(&q->writeIndex, memory_order_acquire);\
+		if (r == w) {\
+			return false;\
+		}\
+		*out = q->buffer[r];\
+		unsigned next = (r + 1) & (CAPACITY -1);\
+		atomic_store_explicit(&q->readIndex, next, memory_order_release);\
+		return true;\
+	}\
+
+#define DECLARE_SPSC(TYPE, NAME, CAPACITY)\
+	DECLARE_SPSC_QUEUE(TYPE, NAME, CAPACITY)\
+	DEFINE_SPSC_PUSH(TYPE, NAME, CAPACITY)\
+	DEFINE_SPSC_POP(TYPE, NAME, CAPACITY)
+
+DECLARE_SPSC(int, IntQueue, 256)
+#endif
+#ifndef POLL
+#define POLL
+#include <errno.h>
+#include <sys/epoll.h>
+#include <sys/eventfd.h>
+#include <sys/timerfd.h>
+#include <stdio.h>
+#include <unistd.h>
+
+typedef struct {
+	int fd;
+	void (*func)(void);
+} PollHandler;
+
+typedef struct {
+	int pfd;
+	struct epoll_event polls[16];
+	PollHandler handler;
+} PollSystem;
+
+
+int getFdFromPoll(PollSystem poll);
+bool initPollSystem(PollSystem *poll, void (*func)(void));
+bool addFdToPoll(PollHandler* handler, int poll);
+bool runPolls(int pfd, struct epoll_event* polls, int count);
+void closePoll(PollSystem poll);
+
+bool initTimerFd(PollHandler *handler, int ticksPerSecond, void (*func)(void));
+#endif
+#ifndef THREAD
+#define THREAD
+
+#include <pthread.h>
+#include <stdio.h>
+#include <stdatomic.h>
+
+pthread_t createThread(void*(*func)(void*), void *data, bool detached);
+
+#endif
+#ifndef CORE
+#define CORE
+extern atomic_int running;
+
+extern PollSystem outputPoll;
+extern PollSystem gamePoll;
+
+bool initCore();
+void exitCore();
+void coreLoop();
+bool addFdToCore(PollHandler* handler);
+bool initTimerFd(PollHandler *handler, int ticksPerSecond, void (*func)(void));
+void wakeEvent();
+void debugWrite(char *message);
+
+//events
+#define EVENT_BUFFER_SIZE 32
+typedef struct {
+	uint32_t type;
+	uint32_t size;
+	alignas(max_align_t) unsigned char data[EVENT_BUFFER_SIZE];
+} SystemEvent;
+
+DECLARE_SPSC(SystemEvent, SystemQueue, 256);
+bool pushEvent(int type, const void *data, uint32_t size);
+bool popEvent(SystemEvent *se);
+
+#endif
+
