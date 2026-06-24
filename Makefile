@@ -24,11 +24,11 @@ prod: CFLAGS += $(PROD_CFLAGS)
 prod: LDFLAGS += $(PROD_LDFLAGS)
 prod: $(TARGET)
 
-RENDERDIR = ../RenderBoo/
+RENDERDIR = ../OIB/
 
 # Linking
-$(TARGET): TUI.h libTUI.a RenderBoo.h libRenderBoo.a libMoltnCore.a libHelper.a  main.o  
-	gcc main.o -o $@ $(LDFLAGS) libTUI.a libRenderBoo.a libMoltnCore.a libHelper.a -lm
+$(TARGET): TUI.h libTUI.a OIB.h libOIB.a libMoltnCore.a libHelper.a  main.o  
+	gcc main.o -o $@ $(LDFLAGS) libTUI.a libOIB.a libMoltnCore.a libHelper.a -lm
 
 libHelper.a:
 	$(MAKE) -C $(RENDERDIR)
@@ -38,18 +38,18 @@ libMoltnCore.a:
 	$(MAKE) -C $(RENDERDIR)
 	cp $(RENDERDIR)libMoltnCore.a .
 
-libRenderBoo.a:
+libOIB.a:
 	$(MAKE) -C $(RENDERDIR)
-	cp $(RENDERDIR)libRenderBoo.a .
+	cp $(RENDERDIR)libOIB.a .
 
-RenderBoo.h:
+OIB.h:
 	$(MAKE) -C $(RENDERDIR)
-	cp $(RENDERDIR)RenderBoo.h .
+	cp $(RENDERDIR)OIB.h .
 
-TUI.h: RenderBoo.h
+TUI.h: OIB.h
 	@echo "Generating TUI headers"
 	@echo "#pragma once" > TUI.h
-	@cat RenderBoo.h input.h keys.h output.h >> TUI.h
+	@cat OIB.h input.h keys.h output.h >> TUI.h
 
 # Static lib
 libTUI.a: input.o output.o keys.o 
@@ -77,7 +77,7 @@ clean:
 	rm -f *.o *.a *.d
 
 fclean:
-	rm -f $(TARGET) *.o *.a *.d TUI.h RenderBoo.h
+	rm -f $(TARGET) *.o *.a *.d TUI.h OIB.h
 
 fixTerminal:
 	stty sane

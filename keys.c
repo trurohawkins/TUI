@@ -1,4 +1,4 @@
-#include "RenderBoo.h"
+#include "OIB.h"
 #include "keys.h"
 
 uint64_t nowMS() {
@@ -24,13 +24,13 @@ void updateKeys() {
 		if (keys[i].down) {
 			if (now - keys[i].lastChange > RELEASE_TIMEOUT) {
 				keys[i].down = false;
-				makeKeyEvent(i, 0);
+				pushKeyEvent(i, 0);
 			}
 		}
 	}
 }
 
-void makeKeyEvent(char c, float val) {
+void pushKeyEvent(char c, float val) {
 	KeyEvent ke = {
 		.key = c,
 		.val = val,

@@ -8,9 +8,6 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#include "MoltnCore.h"
-#include "keys.h"
-
 void initTermInput();
 void setRaw(int state);
 void checkInput();

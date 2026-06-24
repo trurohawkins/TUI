@@ -1,3 +1,6 @@
+#include "OIB.h"
+#include "keys.h"
+
 #include "input.h"
 
 PollHandler inputHandler;
@@ -46,7 +49,7 @@ void checkInput() {
 		ssize_t r = read(STDIN_FILENO, &c, 1);
 		if (r == 1) {
 			onKeyEvent(c);
-			makeKeyEvent(c, 1);
+			pushKeyEvent(c, 1);
 		} else if (r == -1 && errno == EAGAIN) {
 			break;
 		} else {
