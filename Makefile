@@ -52,11 +52,6 @@ $(MOLTNLIB)libMoltnCore.a:
 $(OIBLIB)libOIB.a:
 	$(MAKE) -C $(OIBDIR)
 
-TUI.h: OIB.h
-	@echo "Generating TUI headers"
-	@echo "#pragma once" > TUI.h
-	@cat OIB.h input.h keys.h output.h >> TUI.h
-
 # Static lib
 $(LIBDIR)libTUI.a: input.o output.o keys.o | $(LIBDIR)
 	ar rs $@ $^
