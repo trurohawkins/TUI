@@ -17,6 +17,8 @@ void exitScreen();
 void *outputLoop(void *data);
 void render(RenderFrame *frame);
 
+int getGlyphInfoPos(Glyph gly, char *buff, int px, int py);
+int getGlyphInfo(Glyph gly, char *buff);
 void renderGlyph(Glyph gly, int px, int py);
 void makeScreens();
 
