@@ -1,5 +1,4 @@
-#ifndef OUTPUT
-#define OUTPUT
+#pragma once
 
 #include <signal.h>
 #include <stdio.h>
@@ -23,5 +22,3 @@ void renderGlyph(Glyph gly, int px, int py);
 void makeScreens();
 
 void checkNewRender();
-
-#endif
