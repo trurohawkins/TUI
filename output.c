@@ -1,32 +1,56 @@
 #include "OIB.h"
 #include "output.h"
 
+Tapestry tapestry = {
+	.width = 0,
+	.height = 0,
+	.content = 0,
+};
+
 bool initScreen() {
 	atomic_init(&renderActiveIndex, -1);
 	signal(SIGWINCH, windowResizeCallback);
-	
-	initPollSystem(&outputPoll, &checkNewRender);
 
+	initPollSystem(&outputPoll, &checkRenderFlags);
+
+	getScreenInfo();
 	printf("\033[3J"); // clear screen
 	printf("\033[?25l"); // hide cursor
 	fflush(stdout);
-	makeScreens();
 }
 
-void render(RenderFrame *frame) {
+void freeTapestry() {
+	//for (int i = 0; i < NUM_FRAMES; i++) {
+	free(tapestry.content);
+	//}
+}
+
+void makeTapestry(int x, int y) {
+	if (tapestry.content != 0) {
+		freeTapestry();
+	}
+	//printf("making rendertapestrys %i, %i\n", width, height);
+	//for (int i = 0; i < NUM_FRAMES; i++) {
+	tapestry.width = x;
+	tapestry.height = y;
+	tapestry.content = calloc(x * y, sizeof(Glyph));
+	//}
+}
+
+void render(Tapestry *tapestry) {
 	bool lineByLine = true;
 	printf("\033[0m"); //reset colors
-	//printf("\033[2J"); // clear screen
+										 //printf("\033[2J"); // clear screen
 	printf("\033[H");//moves cursor to begining, reduces screen flicker
-	//char *screenBuff = calloc(frame->width * frame->height * 80 + frame->height * 16, sizeof(char));
-	int lineLength = frame->width * 40 + 10;
+									 //char *screenBuff = calloc(tapestry->width * tapestry->height * 80 + tapestry->height * 16, sizeof(char));
+	int lineLength = tapestry->width * 40 + 10;
 	char *lineBuff = calloc(lineLength, sizeof(char));
-	char *screenBuff = calloc(lineLength * frame->height, sizeof(char));
+	char *screenBuff = calloc(lineLength * tapestry->height, sizeof(char));
 	int screenPrint = 0;
-	for (int y = 0; y < frame->height; y++) {
+	for (int y = 0; y < tapestry->height; y++) {
 		int printed = 0;
-		for (int x = 0; x < frame->width; x++) {
-			Glyph g = frame->content[y * frame->width + x];
+		for (int x = 0; x < tapestry->width; x++) {
+			Glyph g = tapestry->content[y * tapestry->width + x];
 			printed += getGlyphInfo(g, lineBuff + printed);
 			screenPrint += getGlyphInfo(g, screenBuff + screenPrint);
 		}
@@ -88,30 +112,63 @@ void exitScreen() {
 	fflush(stdout);
 
 	closePoll(outputPoll);
+	if (tapestry.content != 0) {
+		freeTapestry();
+	}
 }
 
-void makeScreens() {
+void getScreenInfo() {
 	struct winsize w;
 	ioctl(STDIN_FILENO, TIOCGWINSZ, &w);
 
 	//printf("window size: %d, %d\n", w.ws_row, w.ws_col);
 
-	int data[2] = {w.ws_col, w.ws_row};
+	makeTapestry(w.ws_col, w.ws_row);
+	int data[2] = {tapestry.width, tapestry.height};
 	pushEvent(1, data, sizeof(data));
 }
 
-void checkNewRender() {
+void checkRenderFlags() {
 	if (atomic_exchange(&windowResized, 0)) {
-		makeScreens();
+		getScreenInfo();
 	}
 	if (atomic_exchange(&newRender, 0)) {
-		int frame = atomic_load_explicit(&renderWriteIndex, memory_order_acquire);
-		atomic_store_explicit(&renderActiveIndex, frame, memory_order_release);
+		int currentFrame = atomic_load_explicit(&renderWriteIndex, memory_order_acquire);
+		atomic_store_explicit(&renderActiveIndex, currentFrame, memory_order_release);
+		
+		Glyph empty = {
+			.fr = 0,
+			.fg = 0,
+			.fb = 0,
+			.br = 0,
+			.bg = 0,
+			.bb = 0,
 
-		RenderFrame *f = &frames[frame];
-		render(f);
+			.symbol = ' '
+		};
+		for (int i = 0; i < tapestry.width * tapestry.height; i++) {
+			tapestry.content[i] = empty;
+		}
+		for (int i = 0; i < frames[currentFrame].num; i++) {
+			RenderCommand reco = frames[currentFrame].queue[i];
+			int pos = reco.screenPos[1] * tapestry.width + reco.screenPos[0];
+			if (pos >= 0 && pos < tapestry.width * tapestry.height) {
+				Glyph *g = &tapestry.content[pos];
+				if (reco.sigil >= 0) {
+					g->symbol = reco.sigil;
+					g->fr = reco.r;
+					g->fg = reco.g;
+					g->fb = reco.b;
+				} else {
+					g->br = reco.r;
+					g->bg = reco.g;
+					g->bb = reco.b;
+				}
+			}
+		}
+		render(&tapestry);
 
-		atomic_store_explicit(&renderReadIndex, frame, memory_order_release);
+		atomic_store_explicit(&renderReadIndex, currentFrame, memory_order_release);
 		atomic_store_explicit(&renderActiveIndex, -1, memory_order_release);
 	}
 }
