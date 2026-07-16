@@ -9,7 +9,7 @@
 #include <stdlib.h>
 
 typedef struct {
-	char symbol;
+	const char* symbol;
 
 	uint8_t fr;
 	uint8_t fg;
@@ -22,7 +22,7 @@ typedef struct {
 
 typedef struct {
 	bool figure;
-	char symbol;
+	const char* symbol;
 	uint8_t r;
 	uint8_t g;
 	uint8_t b;
@@ -51,3 +51,8 @@ int getGlyphInfo(Glyph gly, char *buff);
 void renderGlyph(Glyph gly, int px, int py);
 
 void checkRenderFlags();
+
+#define MAX_NUM_STAMPS 256
+int createStamp(const char *value);
+const char *getStamp(int stamp);
+
