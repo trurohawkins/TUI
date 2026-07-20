@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include "OIB.h"
 #include "output.h"
 
@@ -32,7 +33,7 @@ void makeTapestry(int x, int y) {
 	if (tapestry.content != 0) {
 		freeTapestry();
 	}
-	//printf("making rendertapestrys %i, %i\n", width, height);
+	//printf("making rendertapestrys %i, %i\n", x, y);
 	//for (int i = 0; i < NUM_FRAMES; i++) {
 	tapestry.width = x;
 	tapestry.height = y;
@@ -105,6 +106,7 @@ void renderGlyph(Glyph gly, int px, int py) {
 }
 
 void *outputLoop(void *data) {
+	pthread_setname_np(pthread_self(), "Output");
 	while (atomic_load_explicit(&running, memory_order_acquire)) {
 		runPolls(outputPoll.pfd, outputPoll.polls, 16);
 	}
@@ -137,6 +139,9 @@ void getScreenInfo() {
 }
 
 void checkRenderFlags() {
+	uint64_t drain;
+	while (read(outputPoll.handler.fd, &drain, sizeof(junk)) > 0) {}
+	
 	if (atomic_exchange(&windowResized, 0)) {
 		getScreenInfo();
 	}

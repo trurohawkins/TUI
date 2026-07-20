@@ -21,7 +21,6 @@ typedef struct {
 
 static KeyState keys[KEY_COUNT];
 
-uint64_t nowMS();
 void onKeyEvent(char c);
 void updateKeys();
 void pushKeyEvent(char c, float val);

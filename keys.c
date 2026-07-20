@@ -1,12 +1,6 @@
 #include "OIB.h"
 #include "keys.h"
 
-uint64_t nowMS() {
-	struct timespec ts;
-	clock_gettime(CLOCK_MONOTONIC, &ts);
-	return (uint64_t)(ts.tv_sec * 1000ULL + ts.tv_nsec / 1000000ULL);
-}
-
 void onKeyEvent(char c) {
 	uint8_t k = c;
 	uint64_t now = nowMS();

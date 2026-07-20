@@ -14,8 +14,8 @@ void initTermInput() {
 	inputHandler.func = &checkInput;
 	addFdToCore(&inputHandler);
 	
-	initTimerFd(&inputTimer, 120, &updateKeys);
-	addFdToCore(&inputTimer);
+	//initTimerFd(&inputTimer, 120, &updateKeys);
+	//addFdToCore(&inputTimer);
 
 	int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
 	fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
@@ -38,7 +38,7 @@ void setRaw(int state) {
 		tcsetattr(STDIN_FILENO, TCSANOW, &ttystate);
 	} else if (state == 0) {
 		//turn on canonical mode
-		//ttystate.c_lflag |= ICANON | ECHO;
+		//original.c_lflag |= ICANON | ECHO;
 		tcsetattr(STDIN_FILENO, TCSANOW, &original);
 	}
 }
