@@ -140,7 +140,7 @@ void getScreenInfo() {
 
 void checkRenderFlags() {
 	uint64_t drain;
-	while (read(outputPoll.handler.fd, &drain, sizeof(junk)) > 0) {}
+	while (read(outputPoll.handler.fd, &drain, sizeof(drain)) > 0) {}
 	
 	if (atomic_exchange(&windowResized, 0)) {
 		getScreenInfo();
