@@ -168,27 +168,14 @@ void checkRenderFlags() {
 			if (pos >= 0 && pos < tapestry.width * tapestry.height) {
 				Glyph *g = &tapestry.content[pos];
 				if (reco.sigil >= 0) {
-					if (g->symbol == "\u2592") {
-						g->br = g->fr;
-						g->bg = g->fg;
-						g->bb = g->fb;
-					}
 					g->symbol = getStamp(reco.sigil);
 					g->fr = reco.r;
 					g->fg = reco.g;
 					g->fb = reco.b;
 				} else {
-					// if this is our 2nd ground, blend the 2
-					if (g->symbol  == " " && g->br != 0) {
-						g->symbol = "\u2592";
-						g->fr = reco.r;
-						g->fg = reco.g;
-						g->fb = reco.b;
-					} else {
-						g->br = reco.r;
-						g->bg = reco.g;
-						g->bb = reco.b;
-					}
+					g->br = reco.r;
+					g->bg = reco.g;
+					g->bb = reco.b;
 				}
 			}
 		}
