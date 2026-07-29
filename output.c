@@ -168,7 +168,7 @@ void checkRenderFlags() {
 			if (pos >= 0 && pos < tapestry.width * tapestry.height) {
 				Glyph *g = &tapestry.content[pos];
 				if (reco.sigil >= 0) {
-					g->symbol = getStamp(reco.sigil);
+					memcpy(g->symbol, getStamp(reco.sigil), 4);
 					g->fr = reco.r;
 					g->fg = reco.g;
 					g->fb = reco.b;

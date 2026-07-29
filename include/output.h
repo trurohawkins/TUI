@@ -9,7 +9,7 @@
 #include <stdlib.h>
 
 typedef struct {
-	const char* symbol;
+	char symbol[4];
 
 	uint8_t fr;
 	uint8_t fg;
