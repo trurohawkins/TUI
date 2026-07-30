@@ -53,6 +53,6 @@ void renderGlyph(Glyph gly, int px, int py);
 void checkRenderFlags();
 
 #define MAX_NUM_STAMPS 256
-int createStamp(const char *value);
-const char *getStamp(int stamp);
+int createStamp(char *value);
+char *getStamp(int stamp);
 

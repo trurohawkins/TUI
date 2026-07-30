@@ -23,9 +23,9 @@ int main() {
 	initScreen();
 	Glyph popu = {
 		.symbol = " ",
-		.fr = 0,
-		.fg = 0,
-		.fb = 0,
+		.fr = 255,
+		.fg = 255,
+		.fb = 255,
 	};
 	Glyph guy = {
 		.symbol = "\u2592",
