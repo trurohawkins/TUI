@@ -54,5 +54,6 @@ void checkRenderFlags();
 
 #define MAX_NUM_STAMPS 256
 int createStamp(char *value);
+void renderStamp(Glyph *g, RenderCommand reco);
 char *getStamp(int stamp);
 

@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 #include "OIB.h"
 #include "output.h"
+#include "textBox.h"
 
 Tapestry tapestry = {
 	.width = 0,
@@ -100,14 +101,14 @@ void getScreenInfo() {
 void checkRenderFlags() {
 	uint64_t drain;
 	while (read(outputPoll.handler.fd, &drain, sizeof(drain)) > 0) {}
-	
+
 	if (atomic_exchange(&windowResized, 0)) {
 		getScreenInfo();
 	}
 	if (atomic_exchange(&newRender, 0)) {
 		int currentFrame = atomic_load_explicit(&renderWriteIndex, memory_order_acquire);
 		atomic_store_explicit(&renderActiveIndex, currentFrame, memory_order_release);
-		
+
 		Glyph empty = {
 			.fr = 0,
 			.fg = 0,
@@ -123,18 +124,15 @@ void checkRenderFlags() {
 		}
 		for (int i = 0; i < frames[currentFrame].num; i++) {
 			RenderCommand reco = frames[currentFrame].queue[i];
-			int pos = reco.screenPos[1] * tapestry.width + reco.screenPos[0];
+			int pos = (reco.screenPos[1] * tapestry.width) + reco.screenPos[0];
 			if (pos >= 0 && pos < tapestry.width * tapestry.height) {
-				Glyph *g = &tapestry.content[pos];
-				if (reco.sigil >= 0) {
-					memcpy(g->symbol, getStamp(reco.sigil), 4);
-					g->fr = reco.r;
-					g->fg = reco.g;
-					g->fb = reco.b;
-				} else {
-					g->br = reco.r;
-					g->bg = reco.g;
-					g->bb = reco.b;
+				if (reco.type == 0) {
+					renderStamp(&tapestry.content[pos], reco);
+				} else if (reco.type == 1) {
+					TextBox *box = getTextBox(reco.index);
+					if (box) {
+						drawTextBox(box, reco.screenPos[0], reco.screenPos[1]);
+					}
 				}
 			}
 		}
@@ -153,13 +151,28 @@ char *getStamp(int stamp) {
 	}
 }
 
+void renderStamp(Glyph *g, RenderCommand reco) {
+	char *stamp = getStamp(reco.index);
+	if (stamp) {
+		memcpy(g->symbol, stamp, 4);
+		g->fr = reco.r;
+		g->fg = reco.g;
+		g->fb = reco.b;
+	} else {
+		g->br = reco.r;
+		g->bg = reco.g;
+		g->bb = reco.b;
+	}
+}
+
 int createStamp(char* value) {
 	int stamp = currentStamp + 1;
 	if (stamp >= 0 && stamp < MAX_NUM_STAMPS) {
 		memcpy(stamps+stamp, value, strlen(value));
 		//stamps[stamp] = value;
 		currentStamp = stamp;
+		return stamp;
 	}
-	return stamp;
+	return -1;
 }
 

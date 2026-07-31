@@ -2,8 +2,13 @@
 #include "output.h"
 #include "textBox.h"
 
-TextBox *makeTextBox(int width, int height, char *string) {
-	TextBox *box = calloc(1, sizeof(TextBox));
+TextBox textBoxes[MAX_TEXT_BOXES];
+int currentTextBox = -1;
+
+TextBox *makeTextBox(TextBox *box, int width, int height, char *string) {
+	if (box == 0) {
+		box = calloc(1, sizeof(TextBox));
+	}
 	Box frame = {
 		.size = {width, height},
 		.border = {
@@ -14,7 +19,8 @@ TextBox *makeTextBox(int width, int height, char *string) {
 		},
 		.center = {
 			.symbol = " ",
-		}
+		},
+		.transparent = true,
 	};
 	box->frame = frame;
 	uint8_t color[3] = {255, 255, 255};
@@ -34,7 +40,7 @@ void drawTextBox(TextBox *box, int posX, int posY) {
 
 	int lines = divideUp(len, width);
 	int renderHeight = box->frame.size[1] - 4;
-	int yp = posY - divideUp(lines, 2) - 1;//- renderHeight/2 + lines;
+	int yp = posY - divideUp(lines, 2);//- renderHeight/2 + lines;
 
 	for (int i = 0; i < len; i++) {
 		if (i % width == 0 || box->string[i] == '\n') {
@@ -61,6 +67,29 @@ void changeTextColor(TextBox *box,uint8_t r, uint8_t g, uint8_t b) {
 	box->color[2] = b;
 }
 
+void freeTextBox(TextBox* box) {
+	free(box->string);
+	free(box);
+}
+
+TextBox *getTextBox(int tBox) {
+	if (tBox >= 0 && tBox < MAX_TEXT_BOXES) {
+		return &textBoxes[tBox];
+	} else {
+		return 0;
+	}
+}
+
+int createTextBox(int width, int height, char *string) {
+	int tBox = currentTextBox + 1;
+	if (tBox < MAX_TEXT_BOXES) {
+		makeTextBox(&textBoxes[tBox], width, height, string);
+		//textBoxes[tBox] = *box;
+		//freeTextBox(box);
+		return tBox;
+	}
+	return -1;
+}
 
 bool validChar(char c) {
 	if (c == '\n' || c == '\r') {
@@ -70,30 +99,30 @@ bool validChar(char c) {
 }
 
 void drawBox(Box *box, int posX, int posY) {
-	int dimX[2] = {posX - box->size[0]/2, posX + box->size[0]/2};
-	if (box->size[0] % 2 == 1) {
-		dimX[1]++;
-	}
-	int dimY[2] = {posY - box->size[1]/2, posY + box->size[1]/2};
-	if (box->size[1] % 2 == 1) {
-		dimY[1]++;
-	}
+	int dimX[2] = {posX - box->size[0]/2, posX + divideUp(box->size[0], 2)};
+	int dimY[2] = {posY - box->size[1]/2, posY + divideUp(box->size[1], 2)};
 	for (int x = dimX[0]; x < dimX[1]; x++) {
 		for (int y = dimY[0]; y < dimY[1]; y++) {
 			if (x >= 0 && y >= 0 && x < tapestry.width && y < tapestry.height) {
 				int pos = (y * tapestry.width) + x;
+				Glyph *g = &tapestry.content[pos];
 				if (x == dimX[0] || y == dimY[0] || x == dimX[1]-1 || y == dimY[1]-1) {
-					tapestry.content[pos] = box->border;
+					drawBoxPart(g, box->border, box->transparent);
 				} else {
-					tapestry.content[pos] = box->center;
+					drawBoxPart(g, box->center, box->transparent);
 				}
 			}
 		}
 	}
 }
 
-void freeTextBox(TextBox* box) {
-	free(box->string);
-	free(box);
+void drawBoxPart(Glyph *pos, Glyph draw, bool transparent) {
+	if (!transparent) {
+		*pos = draw;
+	} else if (draw.symbol[0] != ' ') {
+		memcpy(pos->symbol, draw.symbol, 4);
+		pos->fr = draw.fr;
+		pos->fg = draw.fg;
+		pos->fb = draw.fb;
+	}
 }
-

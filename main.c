@@ -46,7 +46,7 @@ int main() {
 	};
 	int pos = 0;
 	//tapestry.content[pos] = guy;
-	TextBox *box = makeTextBox(8, 12, "poop\npoop\rpooppooppoop");
+	TextBox *box = makeTextBox(0, 8, 12, "poop\npoop\rpooppooppoop");
 	int timer = 0;
 	while (runOutputLoop) {
 		render(&tapestry);
