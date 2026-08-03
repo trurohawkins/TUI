@@ -9,7 +9,6 @@ void handleExit(int sig) {
 }
 
 int main() {
-
 	struct sigaction sa = {0};
 	sa.sa_handler = handleExit;
 	sigemptyset(&sa.sa_mask);
@@ -18,9 +17,11 @@ int main() {
 		perror("sigaction");
 		return 1;
 	}
+
 	initCore();
 	initTermInput();
 	initScreen();
+
 	Glyph popu = {
 		.symbol = " ",
 		.fr = 255,
