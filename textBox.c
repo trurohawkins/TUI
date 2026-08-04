@@ -26,8 +26,7 @@ TextBox *makeTextBox(TextBox *box, int width, int height, char *string) {
 	uint8_t color[3] = {255, 255, 255};
 	memcpy(box->color, color, sizeof(uint8_t) * 3);
 	int len = strlen(string);
-	box->string = calloc(len+1, sizeof(char));
-	memcpy(box->string, string, len);
+	memcpy(box->string, string, min(TEXT_BOX_STRING_LENGTH, len));
 	return box;
 }
 
@@ -68,7 +67,6 @@ void changeTextColor(TextBox *box,uint8_t r, uint8_t g, uint8_t b) {
 }
 
 void freeTextBox(TextBox* box) {
-	free(box->string);
 	free(box);
 }
 
@@ -89,6 +87,9 @@ int createTextBox(int width, int height, char *string) {
 		return tBox;
 	}
 	return -1;
+}
+
+void freeTextBoxes() {
 }
 
 bool validChar(char c) {

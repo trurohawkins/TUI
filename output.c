@@ -85,6 +85,7 @@ void exitScreen() {
 	if (tapestry.content != 0) {
 		freeTapestry();
 	}
+	freeTextBoxes();
 }
 
 void getScreenInfo() {
@@ -124,15 +125,17 @@ void checkRenderFlags() {
 		}
 		for (int i = 0; i < frames[currentFrame].num; i++) {
 			RenderCommand reco = frames[currentFrame].queue[i];
-			int pos = (reco.screenPos[1] * tapestry.width) + reco.screenPos[0];
-			if (pos >= 0 && pos < tapestry.width * tapestry.height) {
-				if (reco.type == 0) {
-					renderStamp(&tapestry.content[pos], reco);
-				} else if (reco.type == 1) {
-					TextBox *box = getTextBox(reco.index);
-					if (box) {
-						drawTextBox(box, reco.screenPos[0], reco.screenPos[1]);
-					}
+			if (reco.type == 0) {
+				//unpack data
+				PosColor pc;
+				memcpy(&pc, reco.data, sizeof(PosColor));
+				renderStamp(reco.index, pc.pos.x, pc.pos.y, pc.color[0], pc.color[1], pc.color[2]);
+			} else if (reco.type == 1) {
+				TextBox *box = getTextBox(reco.index);
+				if (box) {
+					Pos p;
+					memcpy(&p, reco.data, sizeof(Pos));
+					drawTextBox(box, p.x, p.y);
 				}
 			}
 		}
@@ -151,17 +154,21 @@ char *getStamp(int stamp) {
 	}
 }
 
-void renderStamp(Glyph *g, RenderCommand reco) {
-	char *stamp = getStamp(reco.index);
-	if (stamp) {
-		memcpy(g->symbol, stamp, 4);
-		g->fr = reco.r;
-		g->fg = reco.g;
-		g->fb = reco.b;
-	} else {
-		g->br = reco.r;
-		g->bg = reco.g;
-		g->bb = reco.b;
+void renderStamp(int index, int scrnX, int scrnY, uint8_t r, uint8_t g, uint8_t b) {
+	if (scrnX >= 0 && scrnY >= 0 && scrnX < tapestry.width && scrnY < tapestry.height) {
+		int pos = (scrnY * tapestry.width) + scrnX;
+		Glyph *glyph = &tapestry.content[pos];
+		char *stamp = getStamp(index);
+		if (stamp) {
+			memcpy(glyph->symbol, stamp, 4);
+			glyph->fr = r;
+			glyph->fg = g;
+			glyph->fb = b;
+		} else {
+			glyph->br = r;
+			glyph->bg = g;
+			glyph->bb = b;
+		}
 	}
 }
 

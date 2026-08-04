@@ -8,9 +8,11 @@ typedef struct {
 	Glyph center;
 } Box;
 
+#define TEXT_BOX_STRING_LENGTH 128
+
 typedef struct {
 	Box frame;
-	char *string;
+	char string[TEXT_BOX_STRING_LENGTH];
 	uint8_t color[3];
 } TextBox;
 
@@ -22,6 +24,7 @@ void drawTextBox(TextBox *box, int posX, int posY);
 void changeTextColor(TextBox *box, uint8_t r, uint8_t g, uint8_t b);
 void freeTextBox(TextBox* box);
 bool validChar(char c);
+void freeTextBoxes();
 
 int createTextBox(int width, int height, char *string);
 TextBox *getTextBox(int tBox);
