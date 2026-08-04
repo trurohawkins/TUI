@@ -133,9 +133,13 @@ void checkRenderFlags() {
 			} else if (reco.type == 1) {
 				TextBox *box = getTextBox(reco.index);
 				if (box) {
-					Pos p;
-					memcpy(&p, reco.data, sizeof(Pos));
-					drawTextBox(box, p.x, p.y);
+					if (reco.cmd == 0) {
+						Pos p;
+						memcpy(&p, reco.data, sizeof(Pos));
+						drawTextBox(box, p.x, p.y);
+					} else if (reco.cmd == 1) {
+						memcpy(box->color, reco.data, sizeof(uint8_t) * 3);
+					}
 				}
 			}
 		}
