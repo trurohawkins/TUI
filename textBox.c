@@ -84,6 +84,7 @@ int createTextBox(int width, int height, char *string) {
 		makeTextBox(&textBoxes[tBox], width, height, string);
 		//textBoxes[tBox] = *box;
 		//freeTextBox(box);
+		currentTextBox = tBox;
 		return tBox;
 	}
 	return -1;
