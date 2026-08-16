@@ -105,6 +105,7 @@ void checkRenderFlags() {
 
 	if (atomic_exchange(&windowResized, 0)) {
 		getScreenInfo();
+		atomic_store_explicit(&newRender, 1, memory_order_release);
 	}
 	if (atomic_exchange(&newRender, 0)) {
 		int currentFrame = atomic_load_explicit(&renderWriteIndex, memory_order_acquire);
