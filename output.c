@@ -41,31 +41,23 @@ void makeTapestry(int x, int y) {
 }
 
 void render(Tapestry *tapestry) {
-	bool lineByLine = true;
-	printf("\033[0m"); //reset colors
-										 //printf("\033[2J"); // clear screen
-	printf("\033[H");//moves cursor to begining, reduces screen flicker
-									 //char *screenBuff = calloc(tapestry->width * tapestry->height * 80 + tapestry->height * 16, sizeof(char));
+	write(STDOUT_FILENO, "\033[0m\033[H", 7); //reset colors and moves cursor to begining
 	for (int y = 0; y < tapestry->height; y++) {
 		int printed = 0;
+		//move cursor to beginning of line
+		printed += sprintf(lineBuff, "\033[%d;1H", y + 1);
 		for (int x = 0; x < tapestry->width; x++) {
 			Glyph g = tapestry->content[y * tapestry->width + x];
 			printed += getGlyphInfo(g, lineBuff + printed);
 		}
-		printed += sprintf(lineBuff + printed, "\033[K\n");
-		if (lineByLine) {
-			write(STDOUT_FILENO, lineBuff, printed);
-		}
+		printed += sprintf(lineBuff + printed, "\033[K");
+		write(STDOUT_FILENO, lineBuff, printed);
 	}
-	fflush(stdout);
+	//fflush(stdout);
 }
 
 int getGlyphInfo(Glyph gly, char *buff) {
-	int chars = sprintf(buff, "\033[38;2;%d;%d;%dm", gly.fr, gly.fg, gly.fb);
-	chars += sprintf(buff + chars, "\033[48;2;%d;%d;%dm", gly.br, gly.bg, gly.bb);
-	//memcpy(buff + chars, gly.symbol, 4);
-	//chars += 4;//sprintf(buff + chars, "%s", gly.symbol);
-	chars += sprintf(buff + chars, "%s", gly.symbol);
+	int chars = sprintf(buff, "\033[38;2;%d;%d;%dm\033[48;2;%d;%d;%dm%s", gly.fr, gly.fg, gly.fb, gly.br, gly.bg, gly.bb, gly.symbol);
 	return chars;
 }
 
@@ -165,7 +157,7 @@ void renderStamp(int index, int scrnX, int scrnY, uint8_t r, uint8_t g, uint8_t 
 		Glyph *glyph = &tapestry.content[pos];
 		char *stamp = getStamp(index);
 		if (stamp) {
-			memcpy(glyph->symbol, stamp, 4);
+			memcpy(glyph->symbol, stamp, 5);
 			glyph->fr = r;
 			glyph->fg = g;
 			glyph->fb = b;
@@ -180,8 +172,7 @@ void renderStamp(int index, int scrnX, int scrnY, uint8_t r, uint8_t g, uint8_t 
 int createStamp(char* value) {
 	int stamp = currentStamp + 1;
 	if (stamp >= 0 && stamp < MAX_NUM_STAMPS) {
-		memcpy(stamps+stamp, value, strlen(value));
-		//stamps[stamp] = value;
+		memcpy(stamps[stamp], value, strlen(value));
 		currentStamp = stamp;
 		return stamp;
 	}
