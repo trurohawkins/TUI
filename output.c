@@ -8,7 +8,7 @@ Tapestry tapestry = {
 	.height = 0,
 	.content = 0,
 };
-char stamps[MAX_NUM_STAMPS][4];
+char stamps[MAX_NUM_STAMPS][5] = {0};
 int currentStamp = 0;
 char *lineBuff = 0;
 
@@ -36,7 +36,7 @@ void makeTapestry(int x, int y) {
 	tapestry.width = x;
 	tapestry.height = y;
 	tapestry.content = calloc(x * y, sizeof(Glyph));
-	int lineLength = tapestry.width * 45 + 10;
+	int lineLength = tapestry.width * 65 + 10;
 	lineBuff = calloc(lineLength, sizeof(char));
 }
 
@@ -52,7 +52,7 @@ void render(Tapestry *tapestry) {
 			Glyph g = tapestry->content[y * tapestry->width + x];
 			printed += getGlyphInfo(g, lineBuff + printed);
 		}
-		printed += sprintf(lineBuff + printed, "\033[K");
+		printed += sprintf(lineBuff + printed, "\033[K\n");
 		if (lineByLine) {
 			write(STDOUT_FILENO, lineBuff, printed);
 		}
@@ -63,8 +63,9 @@ void render(Tapestry *tapestry) {
 int getGlyphInfo(Glyph gly, char *buff) {
 	int chars = sprintf(buff, "\033[38;2;%d;%d;%dm", gly.fr, gly.fg, gly.fb);
 	chars += sprintf(buff + chars, "\033[48;2;%d;%d;%dm", gly.br, gly.bg, gly.bb);
-	memcpy(buff + chars, gly.symbol, 4);
-	chars += 4;//sprintf(buff + chars, "%s", gly.symbol);
+	//memcpy(buff + chars, gly.symbol, 4);
+	//chars += 4;//sprintf(buff + chars, "%s", gly.symbol);
+	chars += sprintf(buff + chars, "%s", gly.symbol);
 	return chars;
 }
 
@@ -118,8 +119,7 @@ void checkRenderFlags() {
 			.br = 0,
 			.bg = 0,
 			.bb = 0,
-
-			.symbol = " "
+			.symbol = ' ',
 		};
 		for (int i = 0; i < tapestry.width * tapestry.height; i++) {
 			tapestry.content[i] = empty;
