@@ -57,13 +57,3 @@ int createStamp(char *value);
 void renderStamp(int index, int scrnX, int scrnY, uint8_t r, uint8_t g, uint8_t b);
 char *getStamp(int stamp);
 
-typedef struct {
-	int x;
-	int y;
-} Pos;
-
-typedef struct {
-	Pos pos;
-	uint8_t color[3];
-} PosColor;
-

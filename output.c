@@ -122,7 +122,7 @@ void checkRenderFlags() {
 				//unpack data
 				PosColor pc;
 				memcpy(&pc, reco.data, sizeof(PosColor));
-				renderStamp(reco.index, pc.pos.x, pc.pos.y, pc.color[0], pc.color[1], pc.color[2]);
+				renderStamp(reco.index, pc.pos.x, pc.pos.y, pc.color.vals[0], pc.color.vals[1], pc.color.vals[2]);
 			} else if (reco.type == 1) {
 				TextBox *box = getTextBox(reco.index);
 				if (box) {
