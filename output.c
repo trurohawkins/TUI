@@ -2,14 +2,13 @@
 #include "OIB.h"
 #include "output.h"
 #include "textBox.h"
+#include "stamp.h"
 
 Tapestry tapestry = {
 	.width = 0,
 	.height = 0,
 	.content = 0,
 };
-char stamps[MAX_NUM_STAMPS][5] = {0};
-int currentStamp = 0;
 char *lineBuff = 0;
 
 bool initScreen() {
@@ -141,41 +140,5 @@ void checkRenderFlags() {
 		atomic_store_explicit(&renderReadIndex, currentFrame, memory_order_release);
 		atomic_store_explicit(&renderActiveIndex, -1, memory_order_release);
 	}
-}
-
-char *getStamp(int stamp) {
-	if (stamp >= 0 && stamp < MAX_NUM_STAMPS) {
-		return stamps[stamp];
-	} else {
-		return 0;
-	}
-}
-
-void renderStamp(int index, int scrnX, int scrnY, uint8_t r, uint8_t g, uint8_t b) {
-	if (scrnX >= 0 && scrnY >= 0 && scrnX < tapestry.width && scrnY < tapestry.height) {
-		int pos = (scrnY * tapestry.width) + scrnX;
-		Glyph *glyph = &tapestry.content[pos];
-		char *stamp = getStamp(index);
-		if (stamp) {
-			memcpy(glyph->symbol, stamp, 5);
-			glyph->fr = r;
-			glyph->fg = g;
-			glyph->fb = b;
-		} else {
-			glyph->br = r;
-			glyph->bg = g;
-			glyph->bb = b;
-		}
-	}
-}
-
-int createStamp(char* value) {
-	int stamp = currentStamp + 1;
-	if (stamp >= 0 && stamp < MAX_NUM_STAMPS) {
-		memcpy(stamps[stamp], value, strlen(value));
-		currentStamp = stamp;
-		return stamp;
-	}
-	return -1;
 }
 

@@ -1,6 +1,6 @@
 #pragma once
 #include "OIB.h"
-#include "input.h"
-#include "keys.h"
+#include "keyInput.h"
 #include "output.h"
 #include "textBox.h"
+#include "stamp.h"
