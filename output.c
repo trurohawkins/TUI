@@ -16,6 +16,9 @@ bool initScreen() {
 	signal(SIGWINCH, windowResizeCallback);
 
 	initPollSystem(&outputPoll, &checkRenderFlags);
+	
+	//for getting width of utf-8 characters
+	setlocale(LC_CTYPE, "");
 
 	getScreenInfo();
 	printf("\033[3J"); // clear screen
