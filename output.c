@@ -10,6 +10,7 @@ Tapestry tapestry = {
 	.content = 0,
 };
 char *lineBuff = 0;
+char *screenBuff = 0;
 
 bool initScreen() {
 	atomic_init(&renderActiveIndex, -1);
@@ -38,23 +39,41 @@ void makeTapestry(int x, int y) {
 	tapestry.width = x;
 	tapestry.height = y;
 	tapestry.content = calloc(x * y, sizeof(Glyph));
-	int lineLength = tapestry.width * 65 + 10;
+	int lineLength = tapestry.width * 80 + 32;
 	lineBuff = calloc(lineLength, sizeof(char));
+	int screenSize = lineLength * tapestry.height;
+	screenBuff = calloc(screenSize, sizeof(char));
 }
 
 void render(Tapestry *tapestry) {
 	write(STDOUT_FILENO, "\033[0m\033[H", 7); //reset colors and moves cursor to begining
+	int lineLength = tapestry->width * 80 + 32;
+	//int printed = 0;
 	for (int y = 0; y < tapestry->height; y++) {
 		int printed = 0;
 		//move cursor to beginning of line
-		printed += sprintf(lineBuff, "\033[%d;1H", y + 1);
+		printed += sprintf(lineBuff + printed, "\033[%d;1H", y + 1);
 		for (int x = 0; x < tapestry->width; x++) {
 			Glyph g = tapestry->content[y * tapestry->width + x];
 			printed += getGlyphInfo(g, lineBuff + printed);
 		}
 		printed += sprintf(lineBuff + printed, "\033[K");
-		write(STDOUT_FILENO, lineBuff, printed);
+		if (printed >= lineLength) {
+			debugWrite("render buffer overlow\n");
+		}
+		int sent = 0;
+		while (sent < printed) {
+			ssize_t n = write(STDOUT_FILENO, lineBuff + sent, printed - sent);
+			if (n < 0) {
+				debugWrite("render write error\n");
+			}
+			if (n < printed) {
+				debugWrite("did not print enough\n");
+			}
+			sent += n;
+		}
 	}
+	//write(STDOUT_FILENO, screenBuff, printed);
 	//fflush(stdout);
 }
 
