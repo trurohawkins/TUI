@@ -11,7 +11,7 @@ void initTermInput() {
 	inputHandler.fd = STDIN_FILENO;
 	inputHandler.func = &checkInput;
 	addFdToCore(&inputHandler);
-	
+
 	//initTimerFd(&inputTimer, 120, &updateKeys);
 	//addFdToCore(&inputTimer);
 
@@ -29,6 +29,7 @@ void setRaw(int state) {
 		ttystate = original;
 		//turn off canonical mode
 		ttystate.c_lflag &= ~(ICANON | ECHO);
+		ttystate.c_iflag &= ~(ICRNL);
 		//minimum number of input read
 		ttystate.c_cc[VMIN] = 0;
 		ttystate.c_cc[VTIME] = 0;
@@ -42,17 +43,49 @@ void setRaw(int state) {
 }
 
 void checkInput() {
-	char c;
+	char buff[32];
 	while (true) {
-		ssize_t r = read(STDIN_FILENO, &c, 1);
-		if (r == 1) {
-			onKeyEvent(c);
-			pushKeyEvent(c, 1);
+		ssize_t r = read(STDIN_FILENO, buff, sizeof(buff));
+		if (r >= 1) {
+			KeyCode key = parseInputBuffer(buff, r);
+			pushKeyEvent(key, 1);
 		} else if (r == -1 && errno == EAGAIN) {
 			break;
 		} else {
 			break;
 		}
+	}
+}
+
+bool printParse = false;
+
+KeyCode parseInputBuffer(char *buff, int read) {
+	if (printParse) { printf("%zd bytes:", read); }
+	bool escape = false;
+	bool keys[KEY_SEQUENCES] = {0};
+	for (ssize_t i = 0; i < read; i++) {
+		if (printParse) { printf(" %02X", buff[i]); }
+		if (escape) {
+			for (int j = 0; j < KEY_SEQUENCES; j++) {
+				if (buff[i] != sequences[j].seq[i]) {
+					keys[j] = true;
+				}
+			}
+		}
+		if (buff[i] == '\x1b' && read > 1) {
+			escape = true;
+		}
+	}
+	if (printParse) { printf("\n"); }
+	if (escape) {
+		for (int i = 0; i < KEY_SEQUENCES; i++) {
+			if (!keys[i]) {
+				if (printParse) { printf("got %i\n", sequences[i].key); }
+				return sequences[i].key;
+			}
+		}
+	} else {
+		return buff[0];
 	}
 }
 

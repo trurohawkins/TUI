@@ -6,6 +6,7 @@ volatile sig_atomic_t runOutputLoop = 1;
 
 void handleExit(int sig) {
 	runOutputLoop = 0;
+	exitCoreLoop();
 }
 
 int main() {
@@ -49,6 +50,7 @@ int main() {
 	//tapestry.content[pos] = guy;
 	TextBox *box = makeTextBox(0, 8, 12, "poop\npoop\rpooppooppoop");
 	int timer = 0;
+	/*
 	while (runOutputLoop) {
 		render(&tapestry);
 		nanosleep(&ts, NULL);
@@ -62,6 +64,8 @@ int main() {
 			timer = 0;
 		}
 	}
+*/
+	coreLoop();
 	freeTextBox(box);
 	exitTermInput();
 	exitScreen();

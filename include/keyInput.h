@@ -27,6 +27,7 @@ static KeyState keys[KEY_COUNT];
 void initTermInput();
 void setRaw(int state);
 void checkInput();
+KeyCode parseInputBuffer(char *buff, int read);
 void onKeyEvent(char c);
 void updateKeys();
 void pushKeyEvent(char c, float val);
