@@ -50,6 +50,7 @@ void drawTextBox(TextBox *box, int posX, int posY) {
 			if (xp >= 0 && yp >= 0 && xp < tapestry.width && yp < tapestry.height) {
 					int pos = (yp * tapestry.width) + xp;
 					Glyph *g = &tapestry.content[pos];
+					memset(g->symbol, 0, 5);
 					g->symbol[0] = box->string[i];
 					g->fr = box->color[0];
 					g->fg = box->color[1];
@@ -122,7 +123,7 @@ void drawBoxPart(Glyph *pos, Glyph draw, bool transparent) {
 	if (!transparent) {
 		*pos = draw;
 	} else if (draw.symbol[0] != ' ') {
-		memcpy(pos->symbol, draw.symbol, 4);
+		memcpy(pos->symbol, draw.symbol, 5);
 		pos->fr = draw.fr;
 		pos->fg = draw.fg;
 		pos->fb = draw.fb;
