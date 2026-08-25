@@ -64,8 +64,10 @@ void render(Tapestry *tapestry) {
 		int sent = 0;
 		while (sent < printed) {
 			ssize_t n = write(STDOUT_FILENO, lineBuff + sent, printed - sent);
-			if (n < 0) {
-				debugWrite("render write error\n");
+			if (n < 0 && errno != EINTR) {
+				char buff[100];
+				sprintf(buff, "render write error: %i\n", n);
+				debugWrite(buff);
 			}
 			if (n < printed) {
 				debugWrite("did not print enough\n");
