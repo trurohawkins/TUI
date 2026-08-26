@@ -50,29 +50,39 @@ void render(Tapestry *tapestry) {
 	int lineLength = tapestry->width * 80 + 32;
 	//int printed = 0;
 	for (int y = 0; y < tapestry->height; y++) {
-		int printed = 0;
+		size_t printed = 0;
 		//move cursor to beginning of line
 		printed += sprintf(lineBuff + printed, "\033[%d;1H", y + 1);
 		for (int x = 0; x < tapestry->width; x++) {
 			Glyph g = tapestry->content[y * tapestry->width + x];
 			printed += getGlyphInfo(g, lineBuff + printed);
 		}
-		printed += sprintf(lineBuff + printed, "\033[K");
-		if (printed >= lineLength) {
+		int n = snprintf(lineBuff + printed, lineLength - printed, "\033[K");
+		if (n < 0 || n >= lineLength - printed) {
 			debugWrite("render buffer overlow\n");
 		}
-		int sent = 0;
+		printed += n;
+		size_t sent = 0;
+		int tries = 0;
 		while (sent < printed) {
 			ssize_t n = write(STDOUT_FILENO, lineBuff + sent, printed - sent);
-			if (n < 0 && errno != EINTR) {
-				char buff[100];
-				sprintf(buff, "render write error: %s\n", strerror(errno));
-				debugWrite(buff);
+			if (n < 0) {
+				if (errno != EINTR) {
+					if (errno == EAGAIN || errno == EWOULDBLOCK) {
+						//retry
+						char buff[100];
+						sprintf(buff, "eagain || ewouldblock tries: %d\n", tries);
+						debugWrite(buff);
+						tries++;
+					} else {
+						char buff[100];
+						sprintf(buff, "render write error: %s\n", strerror(errno));
+						debugWrite(buff);
+					}
+				}
+			} else {
+				sent += n;
 			}
-			if (n < printed) {
-				debugWrite("did not print enough\n");
-			}
-			sent += n;
 		}
 	}
 	//write(STDOUT_FILENO, screenBuff, printed);
