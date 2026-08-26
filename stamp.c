@@ -39,7 +39,7 @@ void renderStamp(int index, int scrnX, int scrnY, uint8_t r, uint8_t g, uint8_t 
 }
 
 int createStamp(char* value0, char *value1) {
-	if (value0) {
+	if (value0 || value1) {
 		int stamp = currentStamp + 1;
 		if (stamp >= 0 && stamp < MAX_NUM_STAMPS) {
 
@@ -53,13 +53,17 @@ int createStamp(char* value0, char *value1) {
 					width = w;
 				}
 			}
+			char *fill = " ";
+			if (value0) {
+				memcpy(stamps[stamp].img[0], value0, strlen(value0));
+			} else {
+				memcpy(stamps[stamp].img[0], fill, strlen(fill));
 
-			memcpy(stamps[stamp].img[0], value0, strlen(value0));
+			}
 			if (width != 2) {
 				if (value1) {
 					memcpy(stamps[stamp].img[1], value1, strlen(value1));
 				} else {
-					char *fill = " ";
 					memcpy(stamps[stamp].img[1], fill, strlen(fill));
 				}
 			}
