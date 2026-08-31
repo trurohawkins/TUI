@@ -25,15 +25,11 @@ int main() {
 
 	Glyph popu = {
 		.symbol = " ",
-		.fr = 255,
-		.fg = 255,
-		.fb = 255,
+		.fg = {255, 255, 255},
 	};
 	Glyph guy = {
 		.symbol = "\u2592",
-		.fr = 255,
-		.fg = 255,
-		.fb = 255
+		.fg = {255, 255, 255},
 	};
 	if (tapestry.content == 0) {
 		debugWrite("not ready yet\n");

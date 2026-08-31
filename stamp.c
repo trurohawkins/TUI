@@ -26,13 +26,13 @@ void renderStamp(int index, int scrnX, int scrnY, uint8_t r, uint8_t g, uint8_t 
 				if (stamp->img[i]) {
 					memcpy(glyph->symbol, stamp->img[i], 5);
 				}
-				glyph->fr = r;
-				glyph->fg = g;
-				glyph->fb = b;
+				glyph->fg.rgb[0] = r;
+				glyph->fg.rgb[1] = g;
+				glyph->fg.rgb[2] = b;
 			} else {
-				glyph->br = r;
-				glyph->bg = g;
-				glyph->bb = b;
+				glyph->bg.rgb[0] = r;
+				glyph->bg.rgb[1] = g;
+				glyph->bg.rgb[2] = b;
 			}
 		}
 	}

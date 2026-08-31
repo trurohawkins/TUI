@@ -11,13 +11,9 @@
 typedef struct {
 	char symbol[5];
 
-	uint8_t fr;
-	uint8_t fg;
-	uint8_t fb;
+	Color fg;
+	Color bg;
 
-	uint8_t br;
-	uint8_t bg;
-	uint8_t bb;
 } Glyph;
 
 typedef struct {
@@ -34,6 +30,7 @@ typedef struct {
 	int width;
 	int height;
 	Glyph *content;
+	Tint *overlay;
 } Tapestry;
 
 extern Tapestry tapestry;

@@ -8,6 +8,7 @@ Tapestry tapestry = {
 	.width = 0,
 	.height = 0,
 	.content = 0,
+	.overlay = 0,
 };
 char *lineBuff = 0;
 char *screenBuff = 0;
@@ -29,6 +30,7 @@ bool initScreen() {
 
 void freeTapestry() {
 	free(tapestry.content);
+	free(tapestry.overlay);
 	free(lineBuff);
 }
 
@@ -39,10 +41,14 @@ void makeTapestry(int x, int y) {
 	tapestry.width = x;
 	tapestry.height = y;
 	tapestry.content = calloc(x * y, sizeof(Glyph));
+	tapestry.overlay = calloc(x * y, sizeof(Tint));
+	for (int i = 0; i < x * y; i++) {
+		tapestry.overlay[i] = neutralTint();
+	}
 	int lineLength = tapestry.width * 80 + 32;
 	lineBuff = calloc(lineLength, sizeof(char));
 	int screenSize = lineLength * tapestry.height;
-	screenBuff = calloc(screenSize, sizeof(char));
+	//screenBuff = calloc(screenSize, sizeof(char));
 }
 
 void render(Tapestry *tapestry) {
@@ -90,7 +96,7 @@ void render(Tapestry *tapestry) {
 }
 
 int getGlyphInfo(Glyph gly, char *buff) {
-	int chars = sprintf(buff, "\033[38;2;%d;%d;%dm\033[48;2;%d;%d;%dm%s", gly.fr, gly.fg, gly.fb, gly.br, gly.bg, gly.bb, gly.symbol);
+	int chars = sprintf(buff, "\033[38;2;%d;%d;%dm\033[48;2;%d;%d;%dm%s", gly.fg.rgb[0], gly.fg.rgb[1], gly.fg.rgb[2], gly.bg.rgb[0], gly.bg.rgb[1], gly.bg.rgb[2], gly.symbol);
 	return chars;
 }
 
@@ -138,12 +144,8 @@ void checkRenderFlags() {
 		atomic_store_explicit(&renderActiveIndex, currentFrame, memory_order_release);
 
 		Glyph empty = {
-			.fr = 0,
-			.fg = 0,
-			.fb = 0,
-			.br = 0,
-			.bg = 0,
-			.bb = 0,
+			.fg = {0, 0, 0},
+			.bg = {0, 0, 0},
 			.symbol = ' ',
 		};
 		for (int i = 0; i < tapestry.width * tapestry.height; i++) {
@@ -155,7 +157,7 @@ void checkRenderFlags() {
 				//unpack data
 				PosColor pc;
 				memcpy(&pc, reco.data, sizeof(PosColor));
-				renderStamp(reco.index, pc.pos.x, pc.pos.y, pc.color.vals[0], pc.color.vals[1], pc.color.vals[2]);
+				renderStamp(reco.index, pc.pos.x, pc.pos.y, pc.color.rgb[0], pc.color.rgb[1], pc.color.rgb[2]);
 			} else if (reco.type == 1) {
 				TextBox *box = getTextBox(reco.index);
 				if (box) {
@@ -169,6 +171,12 @@ void checkRenderFlags() {
 				}
 			}
 		}
+		for (int i = 0; i < tapestry.width * tapestry.height; i++) {
+			Glyph *g = &tapestry.content[i];
+			g->fg = tintColor(g->fg, tapestry.overlay[i]);
+			g->bg = tintColor(g->bg, tapestry.overlay[i]);
+		}
+
 		render(&tapestry);
 
 		atomic_store_explicit(&renderReadIndex, currentFrame, memory_order_release);

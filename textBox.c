@@ -13,9 +13,7 @@ TextBox *makeTextBox(TextBox *box, int width, int height, char *string) {
 		.size = {width, height},
 		.border = {
 			.symbol = "*",
-			.fr = 255,
-			.fg = 255,
-			.fb = 255,
+			.fg = {255, 255, 255},
 		},
 		.center = {
 			.symbol = " ",
@@ -52,9 +50,9 @@ void drawTextBox(TextBox *box, int posX, int posY) {
 					Glyph *g = &tapestry.content[pos];
 					memset(g->symbol, 0, 5);
 					g->symbol[0] = box->string[i];
-					g->fr = box->color[0];
-					g->fg = box->color[1];
-					g->fb = box->color[2];
+					g->fg.rgb[0] = box->color[0];
+					g->fg.rgb[1] = box->color[1];
+					g->fg.rgb[2] = box->color[2];
 					xp++;
 			}
 		}
@@ -124,8 +122,8 @@ void drawBoxPart(Glyph *pos, Glyph draw, bool transparent) {
 		*pos = draw;
 	} else if (draw.symbol[0] != ' ') {
 		memcpy(pos->symbol, draw.symbol, 5);
-		pos->fr = draw.fr;
-		pos->fg = draw.fg;
-		pos->fb = draw.fb;
+		for (int i = 0; i < 3; i++) {
+			pos->fg.rgb[i] = draw.fg.rgb[i];
+		}
 	}
 }
