@@ -53,7 +53,7 @@ $(OIBLIB)libOIB.a:
 	$(MAKE) -C $(OIBDIR)
 
 # Static lib
-$(LIBDIR)libTUI.a: keyInput.o output.o textBox.o stamp.o | $(LIBDIR)
+$(LIBDIR)libTUI.a: keyInput.o output.o tapestry.o | $(LIBDIR)
 	ar rs $@ $^
 
 # Compiling
@@ -63,11 +63,8 @@ main.o: main.c
 output.o: output.c $(INCDIR)output.h
 	gcc $(CFLAGS) -c output.c -o $@
 
-textBox.o: textBox.c $(INCDIR)textBox.h
-	gcc $(CFLAGS) -c textBox.c -o $@
-
-stamp.o: stamp.c $(INCDIR)stamp.h
-	gcc $(CFLAGS) -c stamp.c -o $@
+tapestry.o: tapestry.c $(INCDIR)tapestry.h stamp.c $(INCDIR)stamp.h textBox.c $(INCDIR)textBox.h 
+	gcc $(CFLAGS) -c tapestry.c -o $@
 
 # Terminal input
 keyInput.o: keyInput.c $(INCDIR)keyInput.h

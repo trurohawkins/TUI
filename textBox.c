@@ -1,5 +1,3 @@
-#include "OIB.h"
-#include "output.h"
 #include "textBox.h"
 
 TextBox textBoxes[MAX_TEXT_BOXES];
@@ -38,7 +36,6 @@ void drawTextBox(TextBox *box, int posX, int posY) {
 	int lines = divideUp(len, width);
 	int renderHeight = box->frame.size[1] - 4;
 	int yp = posY - divideUp(lines, 2);//- renderHeight/2 + lines;
-
 	for (int i = 0; i < len; i++) {
 		if (i % width == 0 || box->string[i] == '\n') {
 			xp = posX - width / 2;

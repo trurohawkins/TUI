@@ -1,5 +1,7 @@
 #pragma once
 #include <string.h>
+#include "OIB.h"
+#include "output.h"
 
 typedef struct {
 	int size[2];

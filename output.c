@@ -1,17 +1,5 @@
 #define _GNU_SOURCE
-#include "OIB.h"
 #include "output.h"
-#include "textBox.h"
-#include "stamp.h"
-
-Tapestry tapestry = {
-	.width = 0,
-	.height = 0,
-	.content = 0,
-	.overlay = 0,
-};
-char *lineBuff = 0;
-char *screenBuff = 0;
 
 bool initScreen() {
 	atomic_init(&renderActiveIndex, -1);
@@ -28,78 +16,6 @@ bool initScreen() {
 	fflush(stdout);
 }
 
-void freeTapestry() {
-	free(tapestry.content);
-	free(tapestry.overlay);
-	free(lineBuff);
-}
-
-void makeTapestry(int x, int y) {
-	if (tapestry.content != 0) {
-		freeTapestry();
-	}
-	tapestry.width = x;
-	tapestry.height = y;
-	tapestry.content = calloc(x * y, sizeof(Glyph));
-	tapestry.overlay = calloc(x * y, sizeof(Tint));
-	for (int i = 0; i < x * y; i++) {
-		tapestry.overlay[i] = neutralTint();
-	}
-	int lineLength = tapestry.width * 80 + 32;
-	lineBuff = calloc(lineLength, sizeof(char));
-	int screenSize = lineLength * tapestry.height;
-	//screenBuff = calloc(screenSize, sizeof(char));
-}
-
-void render(Tapestry *tapestry) {
-	write(STDOUT_FILENO, "\033[0m\033[H", 7); //reset colors and moves cursor to begining
-	int lineLength = tapestry->width * 80 + 32;
-	//int printed = 0;
-	for (int y = 0; y < tapestry->height; y++) {
-		size_t printed = 0;
-		//move cursor to beginning of line
-		printed += sprintf(lineBuff + printed, "\033[%d;1H", y + 1);
-		for (int x = 0; x < tapestry->width; x++) {
-			Glyph g = tapestry->content[y * tapestry->width + x];
-			printed += getGlyphInfo(g, lineBuff + printed);
-		}
-		int n = snprintf(lineBuff + printed, lineLength - printed, "\033[K");
-		if (n < 0 || n >= lineLength - printed) {
-			debugWrite("render buffer overlow\n");
-		}
-		printed += n;
-		size_t sent = 0;
-		int tries = 0;
-		while (sent < printed) {
-			ssize_t n = write(STDOUT_FILENO, lineBuff + sent, printed - sent);
-			if (n < 0) {
-				if (errno != EINTR) {
-					if (errno == EAGAIN || errno == EWOULDBLOCK) {
-						//retry
-						char buff[100];
-						sprintf(buff, "eagain || ewouldblock tries: %d\n", tries);
-						debugWrite(buff);
-						tries++;
-					} else {
-						char buff[100];
-						sprintf(buff, "render write error: %s\n", strerror(errno));
-						debugWrite(buff);
-					}
-				}
-			} else {
-				sent += n;
-			}
-		}
-	}
-	//write(STDOUT_FILENO, screenBuff, printed);
-	//fflush(stdout);
-}
-
-int getGlyphInfo(Glyph gly, char *buff) {
-	int chars = sprintf(buff, "\033[38;2;%d;%d;%dm\033[48;2;%d;%d;%dm%s", gly.fg.rgb[0], gly.fg.rgb[1], gly.fg.rgb[2], gly.bg.rgb[0], gly.bg.rgb[1], gly.bg.rgb[2], gly.symbol);
-	return chars;
-}
-
 void *outputLoop(void *data) {
 	pthread_setname_np(pthread_self(), "Output");
 	while (atomic_load_explicit(&running, memory_order_acquire)) {
@@ -114,9 +30,7 @@ void exitScreen() {
 	fflush(stdout);
 
 	closePoll(outputPoll);
-	if (tapestry.content != 0) {
-		freeTapestry();
-	}
+	freeTapestry();
 	freeTextBoxes();
 }
 
@@ -127,7 +41,7 @@ void getScreenInfo() {
 	//printf("window size: %d, %d\n", w.ws_row, w.ws_col);
 
 	makeTapestry(w.ws_col, w.ws_row);
-	int data[2] = {tapestry.width, tapestry.height};
+	int data[2] = {w.ws_col, w.ws_row};
 	pushEvent(1, data, sizeof(data));
 }
 
@@ -142,42 +56,9 @@ void checkRenderFlags() {
 	if (atomic_exchange(&newRender, 0)) {
 		int currentFrame = atomic_load_explicit(&renderWriteIndex, memory_order_acquire);
 		atomic_store_explicit(&renderActiveIndex, currentFrame, memory_order_release);
-
-		Glyph empty = {
-			.fg = {0, 0, 0},
-			.bg = {0, 0, 0},
-			.symbol = ' ',
-		};
-		for (int i = 0; i < tapestry.width * tapestry.height; i++) {
-			tapestry.content[i] = empty;
-		}
-		for (int i = 0; i < frames[currentFrame].num; i++) {
-			RenderCommand reco = frames[currentFrame].queue[i];
-			if (reco.type == 0) {
-				//unpack data
-				PosColor pc;
-				memcpy(&pc, reco.data, sizeof(PosColor));
-				renderStamp(reco.index, pc.pos.x, pc.pos.y, pc.color.rgb[0], pc.color.rgb[1], pc.color.rgb[2]);
-			} else if (reco.type == 1) {
-				TextBox *box = getTextBox(reco.index);
-				if (box) {
-					if (reco.cmd == 0) {
-						Pos p;
-						memcpy(&p, reco.data, sizeof(Pos));
-						drawTextBox(box, p.x, p.y);
-					} else if (reco.cmd == 1) {
-						memcpy(box->color, reco.data, sizeof(uint8_t) * 3);
-					}
-				}
-			}
-		}
-		for (int i = 0; i < tapestry.width * tapestry.height; i++) {
-			Glyph *g = &tapestry.content[i];
-			g->fg = tintColor(g->fg, tapestry.overlay[i]);
-			g->bg = tintColor(g->bg, tapestry.overlay[i]);
-		}
-
-		render(&tapestry);
+		
+		fillTapestry(currentFrame);
+		renderTapestry();
 
 		atomic_store_explicit(&renderReadIndex, currentFrame, memory_order_release);
 		atomic_store_explicit(&renderActiveIndex, -1, memory_order_release);

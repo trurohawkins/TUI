@@ -1,5 +1,5 @@
 #include "stamp.h"
-#include "TUI.h"
+
 Stamp stamps[MAX_NUM_STAMPS] = {0};
 int currentStamp = 0;
 int stampStride = 1;

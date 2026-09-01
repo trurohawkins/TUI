@@ -31,11 +31,12 @@ int main() {
 		.symbol = "\u2592",
 		.fg = {255, 255, 255},
 	};
-	if (tapestry.content == 0) {
+	Tapestry *tapestry = getTapestry();
+	if (tapestry->content == 0) {
 		debugWrite("not ready yet\n");
 	} else {
-		for (int i = 0; i < tapestry.width * tapestry.height; i++) {
-				tapestry.content[i] = popu;
+		for (int i = 0; i < tapestry->width * tapestry->height; i++) {
+				tapestry->content[i] = popu;
 		}
 	}
 	struct timespec ts = {
