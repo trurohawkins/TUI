@@ -43,6 +43,7 @@ void makeTapestry(int x, int y) {
 void fillTapestry(int currentFrame) {
 	for (int i = 0; i < tapestry.width * tapestry.height; i++) {
 		tapestry.content[i] = emptyGlyph;
+		tapestry.overlay[i] = neutralTint();
 	}
 	for (int i = 0; i < frames[currentFrame].num; i++) {
 		RenderCommand reco = frames[currentFrame].queue[i];
