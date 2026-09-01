@@ -13,6 +13,12 @@ Glyph emptyGlyph = {
 	.symbol = ' ',
 };
 
+int tapestryStride = 1;
+
+void setTapestryStride(int stride) {
+	tapestryStride = stride;
+}
+
 Tapestry *getTapestry() {
 	return &tapestry;
 }
@@ -115,7 +121,10 @@ void renderTapestry() {
 
 void tintTapestry(Pos p, Tint t) {
 	if (p.x >= 0 && p.y >= 0 && p.x < tapestry.width && p.y < tapestry.height) {
-		tapestry.overlay[(p.y * tapestry.width) + p.x] = t;
+		for (int i = 0; i < tapestryStride; i++) {
+			int pos = (p.y * tapestry.width) + (tapestryStride * p.x + i);
+			tapestry.overlay[pos] = t;
+		}
 	}
 }
 

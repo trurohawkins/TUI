@@ -2,11 +2,6 @@
 
 Stamp stamps[MAX_NUM_STAMPS] = {0};
 int currentStamp = 0;
-int stampStride = 1;
-
-void setStampStride(int stride) {
-	stampStride = stride;
-}
 
 Stamp *getStamp(int stamp) {
 	if (stamp >= 0 && stamp < MAX_NUM_STAMPS) {
@@ -19,8 +14,8 @@ Stamp *getStamp(int stamp) {
 void renderStamp(int index, int scrnX, int scrnY, uint8_t r, uint8_t g, uint8_t b) {
 	if (scrnX >= 0 && scrnY >= 0 && scrnX < tapestry.width && scrnY < tapestry.height) {
 		Stamp *stamp = getStamp(index);
-		for (int i = 0; i < stampStride; i++) {
-			int pos = (scrnY * tapestry.width) + (stampStride * scrnX + i);
+		for (int i = 0; i < tapestryStride; i++) {
+			int pos = (scrnY * tapestry.width) + (tapestryStride * scrnX + i);
 			Glyph *glyph = &tapestry.content[pos];
 			if (stamp) {
 				if (stamp->img[i]) {

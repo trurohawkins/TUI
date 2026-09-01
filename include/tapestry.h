@@ -17,6 +17,7 @@ typedef struct {
 } Tapestry;
 
 void makeTapestry(int x, int y);
+void setTapestryStride(int stride);
 void fillTapestry(int currentFrame);
 void renderTapestry();
 void freeTapestry();
