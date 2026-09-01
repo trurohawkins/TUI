@@ -54,6 +54,10 @@ void fillTapestry(int currentFrame) {
 					memcpy(box->color, reco.data, sizeof(uint8_t) * 3);
 				}
 			}
+		} else if (reco.type == 3) {
+			Tint t;
+			memcpy(&t, reco.data, sizeof(Tint));
+			tintTapestry(reco.pos, t);
 		}
 	}
 	for (int i = 0; i < tapestry.width * tapestry.height; i++) {
@@ -108,6 +112,13 @@ void renderTapestry() {
 	//write(STDOUT_FILENO, screenBuff, printed);
 	//fflush(stdout);
 }
+
+void tintTapestry(Pos p, Tint t) {
+	if (p.x >= 0 && p.y >= 0 && p.x < tapestry.width && p.y < tapestry.height) {
+		tapestry.overlay[(p.y * tapestry.width) + p.x] = t;
+	}
+}
+
 
 void freeTapestry() {
 	if (tapestry.content != 0) {

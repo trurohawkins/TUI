@@ -21,6 +21,7 @@ void fillTapestry(int currentFrame);
 void renderTapestry();
 void freeTapestry();
 Tapestry *getTapestry();
+void tintTapestry(Pos p, Tint t);
 int getGlyphInfo(Glyph gly, char *buff);
 
 #include "stamp.h"
