@@ -65,6 +65,22 @@ void fillTapestry(int currentFrame) {
 			Tint t;
 			memcpy(&t, reco.data, sizeof(Tint));
 			tintTapestry(reco.pos, t);
+		} else if (reco.type == 4) {
+			int boxData[5];
+			memcpy(boxData, reco.data, sizeof(int) * 5);
+			int dimX[2] = {reco.pos.x - boxData[0]/2, reco.pos.x + divideUp(boxData[0], 2)};
+			int dimY[2] = {reco.pos.y - boxData[1]/2, reco.pos.y + divideUp(boxData[1], 2)};
+			for (int x = dimX[0]; x < dimX[1]; x++) {
+				for (int y = dimY[0]; y < dimY[1]; y++) {
+					if (x >= 0 && y >= 0 && x < tapestry.width && y < tapestry.height) {
+						int pos = (y * tapestry.width) + x;
+						Glyph *g = &tapestry.content[pos];
+						for (int i = 0; i < 3; i++) {
+							g->bg.rgb[i] = boxData[2+i];
+						}
+					}
+				}
+			}
 		}
 	}
 	for (int i = 0; i < tapestry.width * tapestry.height; i++) {
@@ -83,7 +99,7 @@ void renderTapestry() {
 	for (int y = 0; y < tapestry.height; y++) {
 		size_t printed = 0;
 		//move cursor to beginning of line
-		printed += sprintf(lineBuff + printed, "\033[%d;1H", y + 1);
+		printed += sprintf(lineBuff + printed, "\033[%d;1H", tapestry.height - (y + 1));
 		for (int x = 0; x < tapestry.width; x++) {
 			Glyph g = tapestry.content[y * tapestry.width + x];
 			printed += getGlyphInfo(g, lineBuff + printed);
