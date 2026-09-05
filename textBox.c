@@ -37,22 +37,15 @@ void fillText(TextBox *box, char *string) {
 void drawTextBox(TextBox *box, int posX, int posY) {
 	drawBox(&box->frame, posX, posY);
 	int len = strlen(box->string);
-	char buff[100];
-	sprintf(buff, "len: %i string: \n%s\n", len, box->string);
-	debugWrite(buff);
 	if (len > 0) {
 		int width = min(box->frame.size[0] - 4, len);
 		int startX = posX - width/2;
 		int xp = startX;//posX - width/2;
 
 		int lines = divideUp(len, width);
-		int renderHeight = box->frame.size[1] - 4;
-		int yp = posY - divideUp(lines, 2);//- renderHeight/2 + lines;
+		//int renderHeight = box->frame.size[1] - 4;
+		int yp = posY + lines / 2;//- renderHeight/2 + lines;
 		for (int i = 0; i < len; i++) {
-			if (xp - startX % width == 0 || box->string[i] == '\n') {
-				xp = startX;
-				yp++;
-			}
 			if (validChar(box->string[i])) {
 				if (xp >= 0 && yp >= 0 && xp < tapestry.width && yp < tapestry.height) {
 						int pos = (yp * tapestry.width) + xp;
@@ -64,6 +57,10 @@ void drawTextBox(TextBox *box, int posX, int posY) {
 						g->fg.rgb[2] = box->color[2];
 						xp++;
 				}
+			}
+			if (xp - startX % width == 0 || box->string[i] == '\n') {
+				xp = startX;
+				yp++;
 			}
 		}
 	}
