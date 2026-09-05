@@ -22,6 +22,7 @@ typedef struct {
 extern TextBox textBoxes[MAX_TEXT_BOXES];
 
 TextBox *makeTextBox(TextBox *box, int width, int height, char *string);
+void fillText(TextBox *box, char *string);
 void drawTextBox(TextBox *box, int posX, int posY);
 void changeTextColor(TextBox *box, uint8_t r, uint8_t g, uint8_t b);
 void freeTextBox(TextBox* box);

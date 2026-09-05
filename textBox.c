@@ -21,36 +21,49 @@ TextBox *makeTextBox(TextBox *box, int width, int height, char *string) {
 	box->frame = frame;
 	uint8_t color[3] = {255, 255, 255};
 	memcpy(box->color, color, sizeof(uint8_t) * 3);
-	int len = strlen(string);
-	memcpy(box->string, string, min(TEXT_BOX_STRING_LENGTH, len));
+	fillText(box, string);
 	return box;
+}
+
+void fillText(TextBox *box, char *string) {
+	int len = strlen(string);
+	if (len != 0) {
+		memcpy(box->string, string, min(TEXT_BOX_STRING_LENGTH, len));
+	} else {
+		memset(box->string, 0, TEXT_BOX_STRING_LENGTH);
+	}
 }
 
 void drawTextBox(TextBox *box, int posX, int posY) {
 	drawBox(&box->frame, posX, posY);
 	int len = strlen(box->string);
+	char buff[100];
+	sprintf(buff, "len: %i string: \n%s\n", len, box->string);
+	debugWrite(buff);
+	if (len > 0) {
+		int width = min(box->frame.size[0] - 4, len);
+		int startX = posX - width/2;
+		int xp = startX;//posX - width/2;
 
-	int width = min(box->frame.size[0] - 4, len);
-	int xp = 0;//posX - width/2;
-
-	int lines = divideUp(len, width);
-	int renderHeight = box->frame.size[1] - 4;
-	int yp = posY - divideUp(lines, 2);//- renderHeight/2 + lines;
-	for (int i = 0; i < len; i++) {
-		if (i % width == 0 || box->string[i] == '\n') {
-			xp = posX - width / 2;
-			yp++;
-		}
-		if (validChar(box->string[i])) {
-			if (xp >= 0 && yp >= 0 && xp < tapestry.width && yp < tapestry.height) {
-					int pos = (yp * tapestry.width) + xp;
-					Glyph *g = &tapestry.content[pos];
-					memset(g->symbol, 0, 5);
-					g->symbol[0] = box->string[i];
-					g->fg.rgb[0] = box->color[0];
-					g->fg.rgb[1] = box->color[1];
-					g->fg.rgb[2] = box->color[2];
-					xp++;
+		int lines = divideUp(len, width);
+		int renderHeight = box->frame.size[1] - 4;
+		int yp = posY - divideUp(lines, 2);//- renderHeight/2 + lines;
+		for (int i = 0; i < len; i++) {
+			if (xp - startX % width == 0 || box->string[i] == '\n') {
+				xp = startX;
+				yp++;
+			}
+			if (validChar(box->string[i])) {
+				if (xp >= 0 && yp >= 0 && xp < tapestry.width && yp < tapestry.height) {
+						int pos = (yp * tapestry.width) + xp;
+						Glyph *g = &tapestry.content[pos];
+						memset(g->symbol, 0, 5);
+						g->symbol[0] = box->string[i];
+						g->fg.rgb[0] = box->color[0];
+						g->fg.rgb[1] = box->color[1];
+						g->fg.rgb[2] = box->color[2];
+						xp++;
+				}
 			}
 		}
 	}

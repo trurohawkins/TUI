@@ -59,6 +59,8 @@ void fillTapestry(int currentFrame) {
 					drawTextBox(box, reco.pos.x, reco.pos.y);
 				} else if (reco.cmd == 1) {
 					memcpy(box->color, reco.data, sizeof(uint8_t) * 3);
+				} else if (reco.cmd == 2) {
+					fillText(box, reco.data);
 				}
 			}
 		} else if (reco.type == 3) {
