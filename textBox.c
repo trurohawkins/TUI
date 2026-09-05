@@ -27,10 +27,26 @@ TextBox *makeTextBox(TextBox *box, int width, int height, char *string) {
 
 void fillText(TextBox *box, char *string) {
 	int len = strlen(string);
+	memset(box->string, 0, TEXT_BOX_STRING_LENGTH);
 	if (len != 0) {
 		memcpy(box->string, string, min(TEXT_BOX_STRING_LENGTH, len));
+		int width = min(box->frame.size[0] - 4, len);
+		int xp = 0;
+		box->lines = 1;
+		for (int i = 0; i < len; i++) {
+			xp++;
+			if (xp % width == 0 || box->string[i] == '\n') {
+				if (i + 1 < len) {
+					box->lines++;
+					xp = 0;
+				}
+			}
+		}
+		char buff[100];
+		sprintf(buff, "%s\n width: %i, lines: %i\n", string, width, box->lines);
+		debugWrite(buff);
 	} else {
-		memset(box->string, 0, TEXT_BOX_STRING_LENGTH);
+		box->lines = 1;
 	}
 }
 
@@ -42,9 +58,9 @@ void drawTextBox(TextBox *box, int posX, int posY) {
 		int startX = posX - width/2;
 		int xp = startX;//posX - width/2;
 
-		int lines = divideUp(len, width);
+		int lines = box->lines;// divideUp(len, width);
 		//int renderHeight = box->frame.size[1] - 4;
-		int yp = posY + lines / 2;//- renderHeight/2 + lines;
+		int yp = posY;// - lines / 2;//- renderHeight/2 + lines;
 		for (int i = 0; i < len; i++) {
 			if (validChar(box->string[i])) {
 				if (xp >= 0 && yp >= 0 && xp < tapestry.width && yp < tapestry.height) {

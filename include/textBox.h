@@ -15,6 +15,7 @@ typedef struct {
 typedef struct {
 	Box frame;
 	char string[TEXT_BOX_STRING_LENGTH];
+	int lines;
 	uint8_t color[3];
 } TextBox;
 
